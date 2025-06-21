@@ -1,21 +1,66 @@
 {
   "name": "tl-manager",
   "version": "0.1.0",
+  "description": "TL Manager application from ColderON",
+  "author": "ColderON",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "next build && next export",
+    "electron": "electron .",
+    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development electron . --no-sandbox\"",
+    "build-electron": "npm run build && electron-builder",
+    "dist": "npm run build && electron-builder --publish=never",
+    "standalone": "next build && next start"
+  },
+  "build": {
+    "appId": "com.preisliste.desktop",
+    "productName": "TL-Manager",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*",
+      "electron/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "items",
+        "to": "items"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "public/icon.png",
+      "category": "Utility"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "public/icon.icns"
+    }
   },
   "dependencies": {
+    "next": "15.3.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.3.4"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "concurrently": "^8.0.0",
+    "cross-env": "^7.0.3",
+    "electron": "^27.0.0",
+    "electron-builder": "^24.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
+    "wait-on": "^7.0.0",
     "@eslint/eslintrc": "^3"
   }
 }
