@@ -57,10 +57,6 @@ function createWindow() {
           label: 'Laufkarte',
           click: () => mainWindow.webContents.send('navigate', '/laufkarte'),
         },
-        {
-          label: 'Beispiel',
-          click: () => mainWindow.webContents.send('navigate', '/beispiel'),
-        },
         { type: 'separator' },
         {
           label: 'Exit',
@@ -163,6 +159,45 @@ ipcMain.handle('laufkarte:saveAndCheck', async (event, { filename, data }) => {
   }
 });
 
+ipcMain.handle('laufkarte:savePDF', async (event, { laufkarteNumber }) => {
+  try {
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Als PDF speichern',
+      defaultPath: `laufkarte-${laufkarteNumber}.pdf`,
+      filters: [{ name: 'PDF', extensions: ['pdf'] }],
+    });
+    if (canceled || !filePath) return { success: false, error: 'Abgebrochen' };
+    const pdfData = await mainWindow.webContents.printToPDF({
+      printBackground: true,
+      pageSize: 'A4',
+    });
+    await fs.writeFile(filePath, pdfData);
+    return { success: true, filePath };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('laufkarte:saveAndPrintPDF', async (event, { laufkarteNumber }) => {
+  try {
+    if (!fsSync.existsSync(laufkartenDir)) {
+      fsSync.mkdirSync(laufkartenDir, { recursive: true });
+    }
+    const pdfPath = path.join(laufkartenDir, `laufkarte-${laufkarteNumber}.pdf`);
+    const pdfData = await mainWindow.webContents.printToPDF({
+      printBackground: true,
+      pageSize: 'A4',
+    });
+    await fs.writeFile(pdfPath, pdfData);
+    // Открыть системное окно печати для этого PDF
+    const { shell } = require('electron');
+    await shell.openPath(pdfPath); // Откроет PDF в системной программе для печати
+    return { success: true, filePath: pdfPath };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
 app.whenReady().then(() => {
   ipcMain.handle('get-config', async () => {
     return await readConfig();
@@ -223,6 +258,29 @@ app.whenReady().then(() => {
     } catch (err) {
       console.error('Failed to save file', err);
       return { success: false, error: err.message };
+    }
+  });
+  
+  ipcMain.handle('laufkarten:list', async () => {
+    try {
+      if (!fsSync.existsSync(laufkartenDir)) {
+        return { files: [] };
+      }
+      const files = fsSync.readdirSync(laufkartenDir).filter(f => f.endsWith('.json'));
+      return { files };
+    } catch (e) {
+      return { files: [] };
+    }
+  });
+
+  ipcMain.handle('laufkarte:read', async (_event, { filename }) => {
+    try {
+      const filePath = path.join(laufkartenDir, filename);
+      if (!fsSync.existsSync(filePath)) return { data: null };
+      const content = await fs.readFile(filePath, 'utf-8');
+      return { data: JSON.parse(content) };
+    } catch (e) {
+      return { data: null };
     }
   });
   

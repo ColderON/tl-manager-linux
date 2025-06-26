@@ -8,4 +8,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getConfig: () => ipcRenderer.invoke('get-config'),
   setConfig: (config) => ipcRenderer.invoke('set-config', config),
   laufkarteSaveAndCheck: (args) => ipcRenderer.invoke('laufkarte:saveAndCheck', args),
+  listLaufkarten: () => ipcRenderer.invoke('laufkarten:list'),
+  readLaufkarte: ({ filename }) => ipcRenderer.invoke('laufkarte:read', { filename }),
+  saveLaufkartePDF: (args) => ipcRenderer.invoke('laufkarte:savePDF', args),
+  saveAndPrintLaufkartePDF: (args) => ipcRenderer.invoke('laufkarte:saveAndPrintPDF', args),
 }); 
