@@ -242,3 +242,28 @@
     padding: 8px 4px;
   }
 }
+
+.navbar {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 0 12px 0;
+  margin-bottom: 32px;
+}
+
+.navlink {
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.navlink:hover {
+  background: #e0e7ff;
+}

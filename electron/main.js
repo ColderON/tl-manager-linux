@@ -2,6 +2,8 @@ const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs/promises');
 const isDev = process.env.NODE_ENV === 'development';
+const os = require('os');
+const fsSync = require('fs');
 
 if (app.isPackaged) {
   app.commandLine.appendSwitch('no-sandbox');
@@ -40,6 +42,33 @@ function createWindow() {
   // Create a minimal menu
   const template = [
     {
+      label: 'Start',
+      submenu: [
+        {
+          label: 'Hauptseite',
+          click: () => mainWindow.webContents.send('navigate', '/'),
+        },
+        { type: 'separator' },
+        {
+          label: 'Preisliste',
+          click: () => mainWindow.webContents.send('navigate', '/preisliste'),
+        },
+        {
+          label: 'Laufkarte',
+          click: () => mainWindow.webContents.send('navigate', '/laufkarte'),
+        },
+        {
+          label: 'Beispiel',
+          click: () => mainWindow.webContents.send('navigate', '/beispiel'),
+        },
+        { type: 'separator' },
+        {
+          label: 'Exit',
+          click: () => { app.quit(); },
+        },
+      ],
+    },
+    {
       label: 'View',
       submenu: [
         { role: 'reload' },
@@ -59,12 +88,92 @@ function createWindow() {
   Menu.setApplicationMenu(menu);
 }
 
+function getConfigPath() {
+  const xdg = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
+  const configDir = path.join(xdg, 'TL-Manager');
+  if (!fsSync.existsSync(configDir)) {
+    fsSync.mkdirSync(configDir, { recursive: true });
+  }
+  return path.join(configDir, 'config.json');
+}
+
+function getDefaultPreislistePath() {
+  const docs = path.join(os.homedir(), 'Documents', 'TL-Manager');
+  if (!fsSync.existsSync(docs)) {
+    fsSync.mkdirSync(docs, { recursive: true });
+  }
+  return path.join(docs, 'preisliste.json');
+}
+
+async function readConfig() {
+  const configPath = getConfigPath();
+  let justCreated = false;
+  let config;
+  if (fsSync.existsSync(configPath)) {
+    try {
+      const raw = await fs.readFile(configPath, 'utf-8');
+      config = JSON.parse(raw);
+    } catch (e) {
+      config = { preislistePath: getDefaultPreislistePath() };
+      justCreated = true;
+    }
+  } else {
+    config = { preislistePath: getDefaultPreislistePath() };
+    justCreated = true;
+    await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+  }
+  // Если только что создали config, создаём preisliste.json если его нет
+  if (justCreated && config.preislistePath) {
+    if (!fsSync.existsSync(config.preislistePath)) {
+      // 5 случайных объектов
+      const categories = ['A', 'B', 'C', 'D', 'E'];
+      const names = ['Item Alpha', 'Item Beta', 'Item Gamma', 'Item Delta', 'Item Epsilon'];
+      const data = Array.from({ length: 5 }).map((_, i) => ({
+        id: i + 1,
+        name: names[i],
+        category: categories[i],
+        price: (Math.random() * 100 + 1).toFixed(2) * 1
+      }));
+      await fs.writeFile(config.preislistePath, JSON.stringify(data, null, 2));
+    }
+  }
+  return config;
+}
+
+async function writeConfig(config) {
+  const configPath = getConfigPath();
+  await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+}
+
+const laufkartenDir = path.join(os.homedir(), 'Documents', 'TL-Manager', 'Laufkarten');
+
+ipcMain.handle('laufkarte:saveAndCheck', async (event, { filename, data }) => {
+  try {
+    if (!fsSync.existsSync(laufkartenDir)) {
+      fsSync.mkdirSync(laufkartenDir, { recursive: true });
+    }
+    const filePath = path.join(laufkartenDir, filename);
+    if (fsSync.existsSync(filePath)) {
+      return { success: false, error: 'Файл с таким именем уже существует!' };
+    }
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    return { success: true, filePath };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
 app.whenReady().then(() => {
+  ipcMain.handle('get-config', async () => {
+    return await readConfig();
+  });
+  ipcMain.handle('set-config', async (_event, config) => {
+    await writeConfig(config);
+    return true;
+  });
   ipcMain.handle('get-initial-data', async () => {
-    const isPackaged = app.isPackaged;
-    const basePath = isPackaged ? process.resourcesPath : process.cwd();
-    const filePath = path.join(basePath, 'items', 'preisliste.json');
-    
+    const config = await readConfig();
+    const filePath = config.preislistePath;
     try {
       const fileContent = await fs.readFile(filePath, 'utf-8');
       const data = JSON.parse(fileContent);
