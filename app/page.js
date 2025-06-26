@@ -13,7 +13,7 @@ const pages = [
 export default function HomeMenu() {
   return (
     <div style={{ maxWidth: 400, margin: '80px auto', padding: 32, border: '1px solid #eee', borderRadius: 12, background: '#fafbfc' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: 32 }}>Выберите раздел</h1>
+      <h1 style={{ textAlign: 'center', marginBottom: 32 }}>Bereich auswählen</h1>
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {pages.map((page) => (
           <li key={page.href} style={{ margin: '24px 0', textAlign: 'center' }}>

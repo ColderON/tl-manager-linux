@@ -2,7 +2,7 @@ import Link from 'next/link';
 import styles from '../page.module.css';
 
 const navLinks = [
-  { title: 'Главная', href: '/' },
+  { title: 'Startseite', href: '/' },
   { title: 'Preisliste', href: '/preisliste' },
   { title: 'Laufkarte', href: '/laufkarte' },
   { title: 'Beispiel', href: '/beispiel' },

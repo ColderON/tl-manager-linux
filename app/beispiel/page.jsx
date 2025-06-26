@@ -13,7 +13,7 @@ export default function BeispielPage() {
   return (
     <div style={{ padding: 32 }}>
       <h1>Beispiel</h1>
-      <p>Это пример третьей страницы.</p>
+      <p>Dies ist ein Beispiel für die dritte Seite.</p>
     </div>
   );
 } 

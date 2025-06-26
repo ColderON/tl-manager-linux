@@ -3,7 +3,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { generateLaufnummer } from "../lib/generateLaufnummer";
 import companyData from "../constants/company_data.json";
 import styles from "./laufkarte.module.css";
-import { useReactToPrint } from 'react-to-print';
 
 export default function LaufkartePage() {
   const [laufkarteNumber, setLaufkarteNumber] = useState("");
@@ -56,15 +55,6 @@ export default function LaufkartePage() {
   const laufkarteRef = useRef(null);
   const [printing, setPrinting] = useState(false);
 
-  const printHandler = useReactToPrint({
-    content: () => laufkarteRef.current,
-    documentTitle: laufkarteNumber ? `Laufkarte_${laufkarteNumber}` : 'Laufkarte',
-    onAfterPrint: () => {
-      setPrinting(false);
-      onSuccess();
-    },
-  });
-
   const handlePrint = useCallback(async () => {
     setPrinting(true);
     const result = await window.electronAPI.laufkarteSaveAndCheck({
@@ -72,12 +62,14 @@ export default function LaufkartePage() {
       data: formData,
     });
     if (result.success) {
-      printHandler();
+      window.print();
+      setTimeout(() => setPrinting(false), 500);
+      onSuccess();
     } else {
       setPrinting(false);
       onError(result.error);
     }
-  }, [laufkarteNumber, formData, printHandler]);
+  }, [laufkarteNumber, formData]);
 
   useEffect(() => {
     generateNewNumber();
@@ -105,12 +97,12 @@ export default function LaufkartePage() {
   };
 
   function onSuccess() {
-    setNotification({ visible: true, message: 'Laufkarte успешно сохранена и отправлена на печать!', type: 'success' });
+    setNotification({ visible: true, message: 'Laufkarte wurde erfolgreich gespeichert und zum Drucken gesendet!', type: 'success' });
     setTimeout(() => setNotification({ visible: false, message: '', type: '' }), 3000);
   }
 
   function onError(errorMsg) {
-    setNotification({ visible: true, message: errorMsg || 'Ошибка при сохранении или печати!', type: 'error' });
+    setNotification({ visible: true, message: errorMsg || 'Fehler beim Speichern oder Drucken!', type: 'error' });
     setTimeout(() => setNotification({ visible: false, message: '', type: '' }), 3000);
   }
 
@@ -168,17 +160,18 @@ export default function LaufkartePage() {
       </div>
       <style jsx global>{`
         @media print {
-          .${styles.laufkartePage} > *:not(.${styles.laufkarteContainer}) {
-            display: none !important;
+          body * {
+            visibility: hidden !important;
           }
-          .${styles.laufkarteContainer} > *:not(.${styles.a4}) {
-            display: none !important;
+          .${styles.a4}, .${styles.a4} * {
+            visibility: visible !important;
           }
           .${styles.a4} {
+            position: absolute !important;
+            left: 0; top: 0; width: 100vw; background: #fff;
             box-shadow: none !important;
             margin: 0 !important;
-            width: 100vw !important;
-            min-height: 100vh !important;
+            padding: 0 !important;
             border-radius: 0 !important;
           }
         }

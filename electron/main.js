@@ -154,7 +154,7 @@ ipcMain.handle('laufkarte:saveAndCheck', async (event, { filename, data }) => {
     }
     const filePath = path.join(laufkartenDir, filename);
     if (fsSync.existsSync(filePath)) {
-      return { success: false, error: 'Файл с таким именем уже существует!' };
+      return { success: false, error: 'Eine Datei mit diesem Namen existiert bereits!' };
     }
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
     return { success: true, filePath };

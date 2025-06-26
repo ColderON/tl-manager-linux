@@ -143,7 +143,7 @@ export default function PreislistePage() {
           kategorien.some(kat => e.category && e.category.toLowerCase().includes(kat))
         );
         if (rest.length > 0) {
-          // Фильтруем по name или price внутри найденных категорий
+          // Фильтруем по name oder price внутри найденных категорий
           filtered = inKategorie.filter(e =>
             rest.some(wort =>
               (e.name && e.name.toLowerCase().includes(wort)) ||
@@ -254,7 +254,7 @@ export default function PreislistePage() {
       {isElectron && config && (
         <div style={{ margin: '16px 0', padding: 12, background: '#f3f4f6', borderRadius: 8 }}>
           <button onClick={() => setShowPathInput((v) => !v)}>
-            {showPathInput ? 'Pfad скрыть' : 'Pfad anzeigen'}
+            {showPathInput ? 'Pfad ausblenden' : 'Pfad anzeigen'}
           </button>
           {showPathInput && (
             <div style={{ marginTop: 8 }}>
@@ -297,7 +297,7 @@ export default function PreislistePage() {
                       await window.electronAPI.setConfig(newConfig);
                       setConfig(newConfig);
                       setNewPath(result.filePath);
-                      showNotification('Pfad обновлён!', 'success');
+                      showNotification('Pfad aktualisiert!', 'success');
                     }
                   }
                 } else {
