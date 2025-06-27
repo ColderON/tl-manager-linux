@@ -6,6 +6,7 @@ const navLinks = [
   { title: 'Preisliste', href: '/preisliste' },
   { title: 'Laufkarte', href: '/laufkarte' },
   { title: 'Beispiel', href: '/beispiel' },
+  { title: 'Laufkarten Liste', href: '/laufkarten-liste' },
 ];
 
 export default function Navbar() {
@@ -15,7 +16,7 @@ export default function Navbar() {
         <Link key={link.href} href={link.href} className={styles.navlink}>
           {link.title}
         </Link>
-      ))}
+      ))}      
     </nav>
   );
 } 

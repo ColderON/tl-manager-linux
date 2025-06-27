@@ -9,7 +9,6 @@ export default function PreislistePage() {
   const [eintraege, setEintraege] = useState([]);
   const [gefilterteEintraege, setGefilterteEintraege] = useState([]);
   const [aktuelleSortierung, setAktuelleSortierung] = useState('none');
-  const [volleBreite, setVolleBreite] = useState(false);
   const [suchText, setSuchText] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', category: '', price: '' });
@@ -251,6 +250,9 @@ export default function PreislistePage() {
         </div>
       )}
 
+   
+
+      <div className={styles.container}>
       {isElectron && config && (
         <div style={{ margin: '16px 0', padding: 12, background: '#f3f4f6', borderRadius: 8 }}>
           <button onClick={() => setShowPathInput((v) => !v)}>
@@ -263,13 +265,8 @@ export default function PreislistePage() {
           )}
         </div>
       )}
-
-      <div className={styles.container}>
         <div className={styles.controls}>
           <div className={styles.leftControls}>
-            <button onClick={() => setVolleBreite(!volleBreite)}>
-              {volleBreite ? 'Container 1200px' : 'Volle Breite'}
-            </button>
             <button onClick={druckeTabelle}>Als PDF exportieren / Drucken</button>
             <button onClick={sortierungZuruecksetzen}>Sortierung zurücksetzen</button>
             <button onClick={() => setShowForm(!showForm)}>Item erstellen</button>
@@ -337,7 +334,7 @@ export default function PreislistePage() {
           </div>
         )}
 
-        <div ref={tableRef} className={volleBreite ? styles.fullWidth : styles.fixedWidth}>
+        <div ref={tableRef} className={styles.contentContainer}>
           <div className={styles.header}>
             <h1>Preisliste</h1>
             <span className={styles.count}>{gefilterteEintraege.length} Einträge</span>

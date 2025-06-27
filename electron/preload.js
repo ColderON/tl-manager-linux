@@ -12,4 +12,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readLaufkarte: ({ filename }) => ipcRenderer.invoke('laufkarte:read', { filename }),
   saveLaufkartePDF: (args) => ipcRenderer.invoke('laufkarte:savePDF', args),
   saveAndPrintLaufkartePDF: (args) => ipcRenderer.invoke('laufkarte:saveAndPrintPDF', args),
+  getLaufkartePDFPath: (args) => ipcRenderer.invoke('laufkarte:getPDFPath', args),
+  listLaufkartenPDFs: () => ipcRenderer.invoke('laufkarten:listPDFs'),
+  getLaufkartePDFPathByFile: (args) => ipcRenderer.invoke('laufkarte:getPDFPathByFile', args),
 }); 

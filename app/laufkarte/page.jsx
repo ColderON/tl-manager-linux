@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { generateLaufnummer } from "../lib/generateLaufnummer";
 import companyData from "../constants/company_data.json";
 import styles from "./laufkarte.module.css";
+import pageStyles from "../page.module.css";
 
 const LAUFKARTEN_DIR = 'Laufkarten';
 
@@ -15,39 +16,45 @@ export default function LaufkartePage() {
     abholtermin: "",
     kleidungstuecke: {
       heMantel: false,
-      anzug: false,
-      jacke: false,
-      hose: false,
-      hemd: false,
-      weste: false,
-      pullover: false,
-      tShirt: false,
-      daMantel: false,
-      kostuem: false,
-      kleid: false,
-      rock: false,
-      bluse: false,
-      gardinen: false,
+        sakko: false,
+        anzughose: false,
+        hose:false,
+        jeansHose: false,
+        jacke: false,        
+        hemd: false,
+        weste: false,
+        pullover: false,
+        tShirt: false,
+        daMantel: false,
+        blazer: false,
+        kleid: false,
+        rock: false,
+        bluse: false,        
+        gardinenVorhaenge: false,
+        bettwaesche: false,
+        tischwaesche: false
     },
     aenderungen: {
       kuerzen: false,
-      engen: false,
-      weiten: false,
-      reissverschluss: false,
-      fuetter: false,
-      tasche: false,
-      kragen: false,
-      stossband: false,
-      saumNaehen: false,
-      knopfKnopfloch: false,
-      falten: false,
-      gummiband: false,
+        verlaengern: false,
+        engen: false,
+        weiten: false,
+        reissverschluss: false,
+        fuetter: false,
+        tasche: false,
+        kragen: false,
+        stossband: false,        
+        knopfKnopfloch: false,        
+        gummiband: false,
     },
     positionen: {
       vorne: false,
-      hinten: false,
-      aermel: false,
-      beine: false,
+        hinten: false,
+        oben: false,
+        unten: false,
+        aermel: false,
+        beine: false,
+        bund: false
     },
     hinweise: "",
   });
@@ -56,11 +63,6 @@ export default function LaufkartePage() {
 
   const laufkarteRef = useRef(null);
   const [printing, setPrinting] = useState(false);
-  const [viewMode, setViewMode] = useState(false);
-  const [laufkartenFiles, setLaufkartenFiles] = useState([]);
-  const [search, setSearch] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [viewData, setViewData] = useState(null);
 
   const handlePrint = useCallback(async () => {
     setPrinting(true);
@@ -125,39 +127,45 @@ export default function LaufkartePage() {
       abholtermin: "",
       kleidungstuecke: {
         heMantel: false,
-        anzug: false,
-        jacke: false,
-        hose: false,
+        sakko: false,
+        anzughose: false,
+        hose:false,
+        jeansHose: false,
+        jacke: false,        
         hemd: false,
         weste: false,
         pullover: false,
         tShirt: false,
         daMantel: false,
-        kostuem: false,
+        blazer: false,
         kleid: false,
         rock: false,
-        bluse: false,
-        gardinen: false,
+        bluse: false,        
+        gardinenVorhaenge: false,
+        bettwaesche: false,
+        tischwaesche: false
       },
       aenderungen: {
         kuerzen: false,
+        verlaengern: false,
         engen: false,
         weiten: false,
         reissverschluss: false,
         fuetter: false,
         tasche: false,
         kragen: false,
-        stossband: false,
-        saumNaehen: false,
-        knopfKnopfloch: false,
-        falten: false,
+        stossband: false,        
+        knopfKnopfloch: false,        
         gummiband: false,
       },
       positionen: {
         vorne: false,
         hinten: false,
+        oben: false,
+        unten: false,
         aermel: false,
         beine: false,
+        bund: false
       },
       hinweise: "",
     });
@@ -174,159 +182,30 @@ export default function LaufkartePage() {
     setTimeout(() => setNotification({ visible: false, message: '', type: '' }), 3000);
   }
 
-  // Получить список файлов Laufkarten
-  const fetchLaufkartenFiles = async () => {
-    try {
-      const result = await window.electronAPI.listLaufkarten();
-      if (result && Array.isArray(result.files)) {
-        setLaufkartenFiles(result.files);
-      }
-    } catch (e) {
-      setLaufkartenFiles([]);
-    }
-  };
-
-  // Загрузить данные выбранного файла
-  const loadLaufkarteFile = async (filename) => {
-    try {
-      const result = await window.electronAPI.readLaufkarte({ filename });
-      if (result && result.data) {
-        setViewData(result.data);
-        setSelectedFile(filename);
-      }
-    } catch (e) {
-      setViewData(null);
-      setSelectedFile(null);
-    }
-  };
-
-  useEffect(() => {
-    if (viewMode) {
-      fetchLaufkartenFiles();
-      setViewData(null);
-      setSelectedFile(null);
-    }
-  }, [viewMode]);
-
   return (
-    <div className={styles.laufkartePage}>
-      <button
-        onClick={() => setViewMode((v) => !v)}
-        style={{ marginBottom: 16, padding: '8px 18px', background: viewMode ? '#2563eb' : '#059669', color: '#fff', borderRadius: 6, border: 'none', fontWeight: 500, cursor: 'pointer' }}
-      >
-        {viewMode ? 'Zurück zum Erstellen' : 'Laufkarten ansehen'}
-      </button>
-      {viewMode ? (
-        <div style={{ display: 'flex', gap: 24 }}>
-          {/* Sidebar: список файлов и поиск */}
-          <div style={{ minWidth: 260, maxWidth: 320 }}>
-            <input
-              type="text"
-              placeholder="Suche..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{ width: '100%', marginBottom: 12, padding: 8, borderRadius: 4, border: '1px solid #cbd5e1', fontSize: 15 }}
-            />
-            <div style={{ maxHeight: 600, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff' }}>
-              {laufkartenFiles.filter(f => f.toLowerCase().includes(search.toLowerCase())).map(f => (
-                <div
-                  key={f}
-                  onClick={() => loadLaufkarteFile(f)}
-                  style={{ padding: '10px 14px', cursor: 'pointer', background: selectedFile === f ? '#e0e7ff' : 'transparent', borderBottom: '1px solid #f1f5f9' }}
-                >
-                  {f}
-                </div>
-              ))}
-              {laufkartenFiles.length === 0 && <div style={{ padding: 12, color: '#64748b' }}>Keine Dateien</div>}
-            </div>
+    <div className={pageStyles.container}>
+      <div className={styles.laufkartePage}>
+        <div className={styles.laufkarteContainer}>
+          {/* Кнопки управления */}
+          <div className={styles.controls}>
+            <button onClick={generateNewNumber}>Neue Nummer generieren</button>
+            <button onClick={resetLaufkarte}>Reset</button>
+            <button onClick={handleSaveAndPrintPDF}>PDF speichern & drucken</button>
           </div>
-          {/* Main: просмотр laufkarte */}
-          <div style={{ flex: 1 }}>
-            {viewData ? (
-              <LaufkarteForm
-                companyData={companyData}
-                laufkarteNumber={selectedFile.replace(/\.json$/, "")}
-                formData={viewData}
-                onInputChange={() => {}}
-                onCheckboxChange={() => {}}
-                isFirst={true}
-                readOnly={true}
-              />
-            ) : (
-              <div style={{ color: '#64748b', fontSize: 18, marginTop: 40 }}>Wählen Sie eine Laufkarte aus</div>
-            )}
+          {/* Форма */}
+          <div className={styles.a4} ref={laufkarteRef} style={printing ? { boxShadow: 'none', margin: 0 } : {}}>
+            <LaufkarteForm
+              companyData={companyData}
+              laufkarteNumber={laufkarteNumber}
+              formData={formData}
+              onInputChange={handleInputChange}
+              onCheckboxChange={handleCheckboxChange}
+              isFirst={true}
+              readOnly={false}
+            />
           </div>
         </div>
-      ) : (
-        <>
-          {notification.visible && (
-            <div className={`${styles.notification} ${styles[notification.type]}`}>{notification.message}</div>
-          )}
-          <div className={styles.laufkarteContainer}>
-            {/* Header Controls */}
-            {!printing && (
-              <div style={{ marginBottom: 24, background: '#fff', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }} className="print:hidden">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1e293b' }}>Laufkarte Generator</h1>
-                  <div style={{ display: 'flex', gap: 16 }}>
-                    <button
-                      onClick={generateNewNumber}
-                      style={{ padding: '10px 20px', background: '#2563eb', color: '#fff', borderRadius: 6, border: 'none', fontWeight: 500, cursor: 'pointer' }}
-                    >
-                      Neue Nummer generieren
-                    </button>
-                    <button
-                      onClick={resetLaufkarte}
-                      style={{ padding: '10px 20px', background: '#f59e42', color: '#fff', borderRadius: 6, border: 'none', fontWeight: 500, cursor: 'pointer' }}
-                    >
-                      Reset
-                    </button>
-                    <button
-                      onClick={handleSaveAndPrintPDF}
-                      style={{ padding: '10px 20px', background: '#6366f1', color: '#fff', borderRadius: 6, border: 'none', fontWeight: 500, cursor: 'pointer' }}
-                    >
-                      PDF speichern & drucken
-                    </button>
-                  </div>
-                </div>
-                <div style={{ marginTop: 8, fontSize: 15, color: '#64748b' }}>
-                  Aktuelle Kontroll-Nr.: <span style={{ fontFamily: 'Fira Mono, monospace', fontWeight: 700 }}>{laufkarteNumber}</span>
-                </div>
-              </div>
-            )}
-            {/* Laufkarte Forms - A4 Size */}
-            <div className={styles.a4} ref={laufkarteRef} style={printing ? { boxShadow: 'none', margin: 0 } : {}}>
-              <LaufkarteForm
-                companyData={companyData}
-                laufkarteNumber={laufkarteNumber}
-                formData={formData}
-                onInputChange={handleInputChange}
-                onCheckboxChange={handleCheckboxChange}
-                isFirst={true}
-                readOnly={false}
-              />
-            </div>
-          </div>
-        </>
-      )}
-      <style jsx global>{`
-        @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          .${styles.a4}, .${styles.a4} * {
-            visibility: visible !important;
-          }
-          .${styles.a4} {
-            position: absolute !important;
-            left: 0; top: 0; width: 100vw; background: #fff;
-            box-shadow: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border-radius: 0 !important;
-          }
-        }
-      `}</style>
+      </div>
     </div>
   );
 }
@@ -338,10 +217,10 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
       <div className={styles.header}>
         <div>
           <div className={styles.company}>{companyData.companyName}</div>
-          <div className={styles.companyDetails}>
-            <div>{companyData.owner}</div>
+          <div className={styles.companyDetails}>           
             <div>{companyData.address}</div>
             <div>Tel: {companyData.phone}</div>
+            <div>Email: {companyData.email}</div>
           </div>
         </div>
         <div className={styles.kontrollNr}>
@@ -349,51 +228,42 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
           <div className={styles.kontrollNrValue}>{laufkarteNumber}</div>
         </div>
       </div>
-      {/* Customer Info */}
-      <div className={styles.grid} style={{ marginBottom: 24 }}>
-        <div>
-          <label className={styles.label}>Name:</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => isFirst && onInputChange("name", e.target.value)}
-            className={styles.input}
-            readOnly={readOnly || !isFirst}
-          />
-        </div>
-        <div>
-          <label className={styles.label}>Tel:</label>
-          <input
-            type="text"
-            value={formData.tel}
-            onChange={(e) => isFirst && onInputChange("tel", e.target.value)}
-            className={styles.input}
-            readOnly={readOnly || !isFirst}
-          />
-        </div>
+      {/* Customer Info + Date Info в одной строке, 4 колонки: label input label input */}
+      <div className={styles.grid} style={{ gridTemplateColumns: 'auto 1fr auto 1fr', alignItems: 'center', marginBottom: 24 }}>
+        <label className={styles.label} style={{ textAlign: 'right' }}>Name:</label>
+        <input
+          type="text"
+          value={formData.name}
+          onChange={(e) => isFirst && onInputChange("name", e.target.value)}
+          className={styles.input}
+          readOnly={readOnly || !isFirst}
+        />
+        <label className={styles.label} style={{ textAlign: 'right' }}>Tel:</label>
+        <input
+          type="text"
+          value={formData.tel}
+          onChange={(e) => isFirst && onInputChange("tel", e.target.value)}
+          className={styles.input}
+          readOnly={readOnly || !isFirst}
+        />
       </div>
-      {/* Date Info */}
-      <div className={styles.grid} style={{ gridTemplateColumns: '1fr 1fr', marginBottom: 24 }}>
-        <div>
-          <label className={styles.label}>Abgegeben am:</label>
-          <input
-            type="text"
-            value={formData.abgegeben}
-            onChange={(e) => isFirst && onInputChange("abgegeben", e.target.value)}
-            className={styles.input}
-            readOnly={readOnly || !isFirst}
-          />
-        </div>
-        <div>
-          <label className={styles.label}>Abholtermin:</label>
-          <input
-            type="text"
-            value={formData.abholtermin}
-            onChange={(e) => isFirst && onInputChange("abholtermin", e.target.value)}
-            className={styles.input}
-            readOnly={readOnly || !isFirst}
-          />
-        </div>
+      <div className={styles.grid} style={{ gridTemplateColumns: 'auto 1fr auto 1fr', alignItems: 'center', marginBottom: 24 }}>
+        <label className={styles.label} style={{ textAlign: 'right' }}>Abgegeben am:</label>
+        <input
+          type="text"
+          value={formData.abgegeben}
+          onChange={(e) => isFirst && onInputChange("abgegeben", e.target.value)}
+          className={styles.input}
+          readOnly={readOnly || !isFirst}
+        />
+        <label className={styles.label} style={{ textAlign: 'right' }}>Abholtermin:</label>
+        <input
+          type="text"
+          value={formData.abholtermin}
+          onChange={(e) => isFirst && onInputChange("abholtermin", e.target.value)}
+          className={styles.input}
+          readOnly={readOnly || !isFirst}
+        />
       </div>
       {/* Main Content Grid */}
       <div className={styles.grid} style={{ gridTemplateColumns: '1fr 1fr 1fr', marginBottom: 24 }}>
@@ -403,19 +273,23 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
           <div className={styles.checkboxGroup}>
             {Object.entries({
               heMantel: "He-Mantel",
-              anzug: "Anzug",
-              jacke: "Jacke",
+              sakko: "Sakko",
+              anzughose: "Anzughose",
               hose: "Hose",
+              jeansHose: "Jeanshose",
+              jacke: "Jacke",
               hemd: "Hemd",
               weste: "Weste",
               pullover: "Pullover",
               tShirt: "T-Shirt",
               daMantel: "Da-Mantel",
-              kostuem: "Kostüm",
+              blazer: "Blazer",
               kleid: "Kleid",
               rock: "Rock",
               bluse: "Bluse",
-              gardinen: "Gardinen",
+              gardinenVorhaenge: "Gardinen/Vorhänge",
+              bettwaesche: "Bettwäsche",
+              tischwaesche: "Tischwäsche"
             }).map(([key, label]) => (
               <label key={key} className={styles.checkboxLabel}>
                 <input
@@ -436,6 +310,7 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
           <div className={styles.checkboxGroup}>
             {Object.entries({
               kuerzen: "kürzen",
+              verlaengern: "verlängern",
               engen: "engen",
               weiten: "weiten",
               reissverschluss: "Reißverschluss",
@@ -443,9 +318,7 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
               tasche: "Tasche",
               kragen: "Kragen",
               stossband: "Stoßband",
-              saumNaehen: "Saum nähen",
               knopfKnopfloch: "Knopf/Knopfloch",
-              falten: "Falten",
               gummiband: "Gummiband",
             }).map(([key, label]) => (
               <label key={key} className={styles.checkboxLabel}>
@@ -468,8 +341,11 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
             {Object.entries({
               vorne: "vorne",
               hinten: "hinten",
+              oben: "oben",
+              unten: "unten",
               aermel: "Ärmel",
               beine: "Beine",
+              bund: "Bund"
             }).map(([key, label]) => (
               <label key={key} className={styles.checkboxLabel}>
                 <input
@@ -491,7 +367,7 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
         <textarea
           value={formData.hinweise}
           onChange={(e) => isFirst && onInputChange("hinweise", e.target.value)}
-          className={styles.textarea}
+          className={`${styles.textarea}`}
           style={{ height: 60, resize: 'none', border: '1px solid #cbd5e1', padding: 8, fontSize: 13, readOnly: readOnly || !isFirst }}
         />
       </div>
@@ -506,6 +382,7 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
             <div className={styles.receiptCompany}>{companyData.companyName}</div>
             <div className={styles.receiptDetails}>{companyData.address}</div>
             <div className={styles.receiptDetails}>Tel: {companyData.phone}</div>
+            <div className={styles.receiptDetails}>Email: {companyData.email}</div>
           </div>
           <div className={styles.receiptNr}>
             <div className={styles.receiptNrLabel}>Abholnummer:</div>
@@ -515,18 +392,91 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
         <div className={styles.receiptInfo}>
           <div>{formData.name}</div>
           <div>Abholtermin: {formData.abholtermin}</div>
+          
+          {/* Три колонки с выбранными пунктами */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 16 }}>
+            {/* Kleidungsstück колонка */}
+            <div>
+              <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 8, textDecoration: 'underline' }}>Kleidungsstück:</div>
+              <div style={{ fontSize: '0.8rem', color: '#374151', lineHeight: 1.4, wordWrap: 'break-word' }}>
+                {Object.entries({
+                  heMantel: "He-Mantel",
+                  sakko: "Sakko",
+                  anzughose: "Anzughose",
+                  hose: "Hose",
+                  jeansHose: "Jeanshose",
+                  jacke: "Jacke",
+                  hemd: "Hemd",
+                  weste: "Weste",
+                  pullover: "Pullover",
+                  tShirt: "T-Shirt",
+                  daMantel: "Da-Mantel",
+                  blazer: "Blazer",
+                  kleid: "Kleid",
+                  rock: "Rock",
+                  bluse: "Bluse",
+                  gardinenVorhaenge: "Gardinen/Vorhänge",
+                  bettwaesche: "Bettwäsche",
+                  tischwaesche: "Tischwäsche"
+                })
+                .filter(([key, label]) => formData.kleidungstuecke[key])
+                .map(([key, label]) => label)
+                .join(', ')}
+              </div>
+            </div>
+            
+            {/* Änderung колонка */}
+            <div>
+              <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 8, textDecoration: 'underline' }}>Änderung:</div>
+              <div style={{ fontSize: '0.8rem', color: '#374151', lineHeight: 1.4, wordWrap: 'break-word' }}>
+                {Object.entries({
+                  kuerzen: "kürzen",
+                  verlaengern: "verlängern",
+                  engen: "engen",
+                  weiten: "weiten",
+                  reissverschluss: "Reißverschluss",
+                  fuetter: "Fütter",
+                  tasche: "Tasche",
+                  kragen: "Kragen",
+                  stossband: "Stoßband",
+                  knopfKnopfloch: "Knopf/Knopfloch",
+                  gummiband: "Gummiband"
+                })
+                .filter(([key, label]) => formData.aenderungen[key])
+                .map(([key, label]) => label)
+                .join(', ')}
+              </div>
+            </div>
+            
+            {/* Position колонка */}
+            <div>
+              <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 8, textDecoration: 'underline' }}>Position:</div>
+              <div style={{ fontSize: '0.8rem', color: '#374151', lineHeight: 1.4, wordWrap: 'break-word' }}>
+                {Object.entries({
+                  vorne: "vorne",
+                  hinten: "hinten",
+                  oben: "oben",
+                  unten: "unten",
+                  aermel: "Ärmel",
+                  beine: "Beine",
+                  bund: "Bund"
+                })
+                .filter(([key, label]) => formData.positionen[key])
+                .map(([key, label]) => label)
+                .join(', ')}
+              </div>
+            </div>
+          </div>
+          
+          {/* Hinweise если есть */}
+          {formData.hinweise && (
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 4 }}>Hinweise:</div>
+              <div style={{ fontSize: '0.85rem', color: '#374151' }}>{formData.hinweise}</div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
-
-// ipcMain.handle('laufkarteSaveAndCheck', async (event, { filename, data }) => {
-//   try {
-//     const filePath = path.join(__dirname, 'somefolder', `${filename}.json`);
-//     await fs.promises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
-//     return { success: true };
-//   } catch (error) {
-//     return { success: false, error: error.message };
-//   }
-// });

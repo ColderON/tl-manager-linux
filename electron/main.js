@@ -198,6 +198,44 @@ ipcMain.handle('laufkarte:saveAndPrintPDF', async (event, { laufkarteNumber }) =
   }
 });
 
+ipcMain.handle('laufkarte:getPDFPath', async (_event, { laufkarteNumber }) => {
+  try {
+    const pdfPath = path.join(laufkartenDir, `laufkarte-${laufkarteNumber}.pdf`);
+    if (fsSync.existsSync(pdfPath)) {
+      return { exists: true, path: 'file://' + pdfPath };
+    } else {
+      return { exists: false };
+    }
+  } catch (e) {
+    return { exists: false };
+  }
+});
+
+ipcMain.handle('laufkarten:listPDFs', async () => {
+  try {
+    if (!fsSync.existsSync(laufkartenDir)) {
+      return { files: [] };
+    }
+    const files = fsSync.readdirSync(laufkartenDir).filter(f => f.endsWith('.pdf'));
+    return { files };
+  } catch (e) {
+    return { files: [] };
+  }
+});
+
+ipcMain.handle('laufkarte:getPDFPathByFile', async (_event, { pdfFileName }) => {
+  try {
+    const pdfPath = path.join(laufkartenDir, pdfFileName);
+    if (fsSync.existsSync(pdfPath)) {
+      return { exists: true, path: 'file://' + pdfPath };
+    } else {
+      return { exists: false };
+    }
+  } catch (e) {
+    return { exists: false };
+  }
+});
+
 app.whenReady().then(() => {
   ipcMain.handle('get-config', async () => {
     return await readConfig();
