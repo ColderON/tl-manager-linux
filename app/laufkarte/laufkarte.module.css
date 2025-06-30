@@ -98,7 +98,7 @@
   width: 100%;
   display: block;
   margin-top: 0.5rem;
-  height: 180px; /* Увеличено в 3 раза */
+  height: 120px; /* Увеличено в 3 раза */
   resize: none;
   border: 1px solid #cbd5e1;
   padding: 8px;
@@ -146,7 +146,7 @@
   width: 100%;
   display: block;
   margin-top: 0.4rem;
-  height: 180px;
+  height: 120px;
   resize: none;
   border: 1px solid #cbd5e1;
   padding: 8px;
@@ -270,9 +270,9 @@
   }
 
   .textarea {
-    height: 180px !important;
-    min-height: 180px !important;
-    max-height: 180px !important;
+    height: 120px !important;
+    min-height: 120px !important;
+    max-height: 120px !important;
   }
 
   .receipt {

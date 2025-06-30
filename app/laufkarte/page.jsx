@@ -63,6 +63,7 @@ export default function LaufkartePage() {
 
   const laufkarteRef = useRef(null);
   const [printing, setPrinting] = useState(false);
+  const [showHinweiseInReceipt, setShowHinweiseInReceipt] = useState(false);
 
   const handlePrint = useCallback(async () => {
     setPrinting(true);
@@ -202,6 +203,8 @@ export default function LaufkartePage() {
               onCheckboxChange={handleCheckboxChange}
               isFirst={true}
               readOnly={false}
+              showHinweiseInReceipt={showHinweiseInReceipt}
+              setShowHinweiseInReceipt={setShowHinweiseInReceipt}
             />
           </div>
         </div>
@@ -210,7 +213,7 @@ export default function LaufkartePage() {
   );
 }
 
-function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, onCheckboxChange, isFirst, readOnly }) {
+function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, onCheckboxChange, isFirst, readOnly, showHinweiseInReceipt, setShowHinweiseInReceipt }) {
   return (
     <div className={styles.laufkarteForm}>
       {/* Header */}
@@ -363,12 +366,23 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
       </div>
       {/* Hinweise */}
       <div className={styles.hinweise}>
-        <div className={styles.sectionTitle}>Hinweise</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className={styles.sectionTitle}>Hinweise</div>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <input
+              type="checkbox"
+              checked={showHinweiseInReceipt}
+              onChange={e => setShowHinweiseInReceipt(e.target.checked)}
+              style={{ marginRight: 4 }}
+            />
+            unten anzeigen
+          </label>
+        </div>
         <textarea
           value={formData.hinweise}
           onChange={(e) => isFirst && onInputChange("hinweise", e.target.value)}
           className={`${styles.textarea}`}
-          style={{ height: 60, resize: 'none', border: '1px solid #cbd5e1', padding: 8, fontSize: 13, readOnly: readOnly || !isFirst }}
+          style={{ resize: 'none', border: '1px solid #cbd5e1', padding: 8, fontSize: 13, readOnly: readOnly || !isFirst }}
         />
       </div>
       {/* Signature Area */}
@@ -390,9 +404,20 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
           </div>
         </div>
         <div className={styles.receiptInfo}>
-          <div>{formData.name}</div>
-          <div>Abholtermin: {formData.abholtermin}</div>
-          
+          <div>
+            {/* Name и Abholdatum: жирные и только если не пустые */}
+            {formData.name && formData.abholtermin && (
+              <span>
+                <span style={{ fontWeight: 'bold' }}>Name:</span> {formData.name} {' | '}<span style={{ fontWeight: 'bold' }}>Abholdatum:</span> {formData.abholtermin}
+              </span>
+            )}
+            {formData.name && !formData.abholtermin && (
+              <span><span style={{ fontWeight: 'bold' }}>Name:</span> {formData.name}</span>
+            )}
+            {!formData.name && formData.abholtermin && (
+              <span><span style={{ fontWeight: 'bold' }}>Abholdatum:</span> {formData.abholtermin}</span>
+            )}
+          </div>
           {/* Три колонки с выбранными пунктами */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 16 }}>
             {/* Kleidungsstück колонка */}
@@ -469,7 +494,7 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
           </div>
           
           {/* Hinweise если есть */}
-          {formData.hinweise && (
+          {showHinweiseInReceipt && formData.hinweise && (
             <div style={{ marginTop: 16 }}>
               <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 4 }}>Hinweise:</div>
               <div style={{ fontSize: '0.85rem', color: '#374151' }}>{formData.hinweise}</div>
