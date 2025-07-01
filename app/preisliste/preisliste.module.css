@@ -22,17 +22,24 @@
 }
 
 .controls button {
-  padding: 8px 12px;
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 8px;
   font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
   cursor: pointer;
-  border: 1px solid #ccc;
-  background: #f5f5f5;
-  border-radius: 4px;
+  white-space: nowrap;
 }
 
-.controls button:hover {
-  background: #e5e5e5;
+.controls button:disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
+
 
 .formContainer {
   display: flex;
@@ -239,29 +246,87 @@
   .table td {
     padding: 8px 4px;
   }
+} 
+
+.primaryBtn {
+  background: linear-gradient(to right, #2563eb, #1d4ed8);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.primaryBtn:hover {
+  background: #1d4ed8;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.3);
 }
 
-.navbar {
+.secondaryBtn {
+  background: #f59e0b;
+  color: #1f2937;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(251, 191, 36, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.secondaryBtn:hover {
+  background: #d97706;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(251, 191, 36, 0.3); 
+}
+
+.actionCell {
   display: flex;
-  gap: 2rem;
+  gap: 8px;
   align-items: center;
-  justify-content: center;
-  background: #f3f4f6;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 16px 0 12px 0;
-  margin-bottom: 32px;
 }
 
-.navlink {
-  color: #2563eb;
-  text-decoration: none;
-  font-size: 18px;
-  font-weight: 500;
-  padding: 4px 12px;
-  border-radius: 6px;
-  transition: background 0.15s;
+.saveBtn {
+  background: #22c55e;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: none;
+  transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+  display: inline-flex;
+  align-items: center;
+}
+.saveBtn:disabled {
+  background: #b6e7c9;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.saveBtn:hover:not(:disabled) {
+  background: #16a34a;
 }
 
-.navlink:hover {
-  background: #e0e7ff;
+.pathBtn {
+  background: #475569;
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(71, 85, 105, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;  
+}
+.pathBtn:hover {
+  background: #334155;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(51, 65, 85, 0.25);
 }

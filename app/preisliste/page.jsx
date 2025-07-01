@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
-import styles from '../page.module.css';
+import styles from './preisliste.module.css';
 import { openJsonFile } from '../lib/jsonUtils';
 import { useRouter } from 'next/navigation';
 
@@ -34,7 +34,8 @@ export default function PreislistePage() {
         setNewPath(cfg.preislistePath || "");
         const result = await window.electronAPI.getInitialData();
         if (result) {
-          setEintraege(result.data || []);
+          const arr = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+          setEintraege(arr || []);
           setCurrentFilePath(result.filePath || null);
           setIsDirty(false);
         } else {
@@ -70,7 +71,7 @@ export default function PreislistePage() {
     if (typeof window !== 'undefined' && window.electronAPI) {
       const result = await window.electronAPI.saveCurrentFile({
         filePath: currentFilePath,
-        data: JSON.stringify(data, null, 2)
+        data: data
       });
       if (result.success) {
         setCurrentFilePath(result.filePath);
@@ -129,20 +130,20 @@ export default function PreislistePage() {
         .split(/\s+/)
         .filter(Boolean);
 
-      // Найти все слова, которые совпадают с категорией хотя бы у одного элемента
+      // Finde alle Wörter, die mit einer Kategorie eines Eintrags übereinstimmen
       const kategorien = suchWoerter.filter(wort =>
         eintraege.some(e => e.category && e.category.toLowerCase().includes(wort))
       );
 
       if (kategorien.length > 0) {
-        // Если есть совпадения по категории, ищем только внутри этих категорий
+        // Wenn es Übereinstimmungen bei Kategorien gibt, suche nur in diesen Kategorien
         const rest = suchWoerter.filter(wort => !kategorien.includes(wort));
-        // Все элементы, у которых категория совпадает с любым из слов
+        // Alle Einträge, deren Kategorie mit einem der Wörter übereinstimmt
         const inKategorie = eintraege.filter(e =>
           kategorien.some(kat => e.category && e.category.toLowerCase().includes(kat))
         );
         if (rest.length > 0) {
-          // Фильтруем по name oder price внутри найденных категорий
+          // Filtere nach Name oder Preis innerhalb der gefundenen Kategorien
           filtered = inKategorie.filter(e =>
             rest.some(wort =>
               (e.name && e.name.toLowerCase().includes(wort)) ||
@@ -150,11 +151,11 @@ export default function PreislistePage() {
             )
           );
         } else {
-          // Если только категория — показываем все из этой категории
+          // Wenn nur Kategorie — zeige alle aus dieser Kategorie
           filtered = inKategorie;
         }
       } else {
-        // Обычный поиск по всем полям
+        // Normale Suche über alle Felder
         const resultSet = new Set();
         suchWoerter.forEach(wort => {
           eintraege.forEach(e => {
@@ -180,25 +181,6 @@ export default function PreislistePage() {
     }
 
     setGefilterteEintraege(filtered);
-  };
-
-  const bestaetigeAenderung = (id, field, value) => {
-    setEintraege(prev => prev.map(item => {
-      if (item.id === id) {
-        const newItem = { ...item };
-        if (field === 'price') {
-          const numValue = parseFloat(value);
-          if (!isNaN(numValue)) {
-            newItem[field] = numValue;
-          }
-        } else {
-          newItem[field] = value;
-        }
-        return newItem;
-      }
-      return item;
-    }));
-    setIsDirty(true);
   };
 
   const neuenEintragHinzufuegen = () => {
@@ -250,28 +232,20 @@ export default function PreislistePage() {
         </div>
       )}
 
-   
-
       <div className={styles.container}>
-      {isElectron && config && (
-        <div style={{ margin: '16px 0', padding: 12, background: '#f3f4f6', borderRadius: 8 }}>
-          <button onClick={() => setShowPathInput((v) => !v)}>
-            {showPathInput ? 'Pfad ausblenden' : 'Pfad anzeigen'}
-          </button>
-          {showPathInput && (
-            <div style={{ marginTop: 8 }}>
-              <b>Pfad zur Preisliste:</b> {config.preislistePath}
-            </div>
-          )}
-        </div>
-      )}
         <div className={styles.controls}>
           <div className={styles.leftControls}>
-            <button onClick={druckeTabelle}>Als PDF exportieren / Drucken</button>
-            <button onClick={sortierungZuruecksetzen}>Sortierung zurücksetzen</button>
-            <button onClick={() => setShowForm(!showForm)}>Item erstellen</button>
+            <button onClick={druckeTabelle} className={styles.primaryBtn}>Als PDF exportieren / Drucken</button>
+            <button onClick={sortierungZuruecksetzen} className={styles.secondaryBtn}>Sortierung zurücksetzen</button>
+            <button onClick={() => setShowForm(!showForm)} className={styles.primaryBtn}>Item erstellen</button>
           </div>
           <div className={styles.rightControls}>
+            <button
+              onClick={() => setShowPathInput((v) => !v)}
+              className={styles.pathBtn}
+            >
+              {showPathInput ? 'Pfad ausblenden' : 'Pfad anzeigen'}
+            </button>
             <input
               type="file"
               accept=".json"
@@ -285,7 +259,8 @@ export default function PreislistePage() {
                   const result = await window.electronAPI.openJsonDialog();
                   if (result && result.filePath && result.data) {
                     setCurrentFilePath(result.filePath);
-                    setEintraege(result.data);
+                    const arr = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+                    setEintraege(arr || []);
                     setAktuelleSortierung('none');
                     setSuchText('');
                     setIsDirty(false);
@@ -301,12 +276,24 @@ export default function PreislistePage() {
                   document.getElementById('jsonFileInput').click();
                 }
               }}
+              className={styles.secondaryBtn}
             >
               JSON-Datei laden
             </button>
-            <button onClick={() => speichereJson()} disabled={!isDirty}>JSON speichern</button>
+            <button
+              onClick={() => speichereJson()}
+              disabled={!isDirty}
+              className={styles.saveBtn}
+            >
+              Änderungen speichern
+            </button>
           </div>
         </div>
+        {isElectron && config && showPathInput && (
+          <div style={{ margin: '16px 0', padding: 12, background: '#f3f4f6', borderRadius: 8 }}>
+            <b>Pfad zur Preisliste:</b> {config.preislistePath}
+          </div>
+        )}
 
         {showForm && (
           <div className={styles.formContainer}>
@@ -369,14 +356,22 @@ export default function PreislistePage() {
                     </td>
                   </tr>
                 ) : (
-                  gefilterteEintraege.map((eintrag) => (
-                    <tr key={eintrag.id}>
+                  gefilterteEintraege.map((eintrag, idx) => (
+                    <tr key={idx}>
                       <td className="id">{eintrag.id}</td>
                       <td
                         className={`${styles.name} ${styles.editable}`}
                         contentEditable
                         suppressContentEditableWarning={true}
-                        onBlur={(e) => bestaetigeAenderung(eintrag.id, 'name', e.target.textContent)}
+                        onBlur={e => {
+                          const newValue = e.target.textContent;
+                          setEintraege(prev =>
+                            prev.map(item =>
+                              item.id === eintrag.id ? { ...item, name: newValue } : item
+                            )
+                          );
+                          setIsDirty(true);
+                        }}
                       >
                         {eintrag.name}
                       </td>
@@ -384,21 +379,39 @@ export default function PreislistePage() {
                         className={`${styles.category} ${styles.editable}`}
                         contentEditable
                         suppressContentEditableWarning={true}
-                        onBlur={(e) => bestaetigeAenderung(eintrag.id, 'category', e.target.textContent)}
+                        onBlur={e => {
+                          const newValue = e.target.textContent;
+                          setEintraege(prev =>
+                            prev.map(item =>
+                              item.id === eintrag.id ? { ...item, category: newValue } : item
+                            )
+                          );
+                          setIsDirty(true);
+                        }}
                       >
                         {eintrag.category?.toUpperCase()}
                       </td>
                       <td
-                        className={`${styles.pri} ${styles.editable}`}
+                        className={`${styles.price} ${styles.editable}`}
                         contentEditable
                         suppressContentEditableWarning={true}
-                        onBlur={(e) => bestaetigeAenderung(eintrag.id, 'price', e.target.textContent)}
+                        onBlur={e => {
+                          const newValue = parseFloat(e.target.textContent);
+                          setEintraege(prev =>
+                            prev.map(item =>
+                              item.id === eintrag.id ? { ...item, price: isNaN(newValue) ? item.price : newValue } : item
+                            )
+                          );
+                          setIsDirty(true);
+                        }}
                       >
-                        {eintrag.price?.toFixed(2)}
+                        {typeof eintrag.price === 'number' && !isNaN(eintrag.price)
+                          ? eintrag.price.toFixed(2)
+                          : eintrag.price}
                       </td>
                       <td className={`${styles.actionCell}`}>
                         <button
-                            className={`${styles.actionBtn} ${styles.remove}`}
+                          className={`${styles.actionBtn} ${styles.remove}`}
                           onClick={() => eintragEntfernen(eintrag.id)}
                         >
                           Entfernen
@@ -428,6 +441,9 @@ export default function PreislistePage() {
             margin: 0 !important;
             padding: 0 !important;
           }
+        }
+        .dirtyRow {
+          background: #fffbe7 !important;
         }
       `}</style>
     </>

@@ -3,7 +3,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { generateLaufnummer } from "../lib/generateLaufnummer";
 import companyData from "../constants/company_data.json";
 import styles from "./laufkarte.module.css";
-import pageStyles from "../page.module.css";
 
 const LAUFKARTEN_DIR = 'Laufkarten';
 
@@ -20,16 +19,16 @@ export default function LaufkartePage() {
         anzughose: false,
         hose:false,
         jeansHose: false,
-        jacke: false,        
-        hemd: false,
-        weste: false,
-        pullover: false,
-        tShirt: false,
-        daMantel: false,
+      jacke: false,
+      hemd: false,
+      weste: false,
+      pullover: false,
+      tShirt: false,
+      daMantel: false,
         blazer: false,
-        kleid: false,
-        rock: false,
-        bluse: false,        
+      kleid: false,
+      rock: false,
+      bluse: false,
         gardinenVorhaenge: false,
         bettwaesche: false,
         tischwaesche: false
@@ -37,23 +36,23 @@ export default function LaufkartePage() {
     aenderungen: {
       kuerzen: false,
         verlaengern: false,
-        engen: false,
-        weiten: false,
-        reissverschluss: false,
-        fuetter: false,
-        tasche: false,
-        kragen: false,
-        stossband: false,        
-        knopfKnopfloch: false,        
-        gummiband: false,
+      engen: false,
+      weiten: false,
+      reissverschluss: false,
+      fuetter: false,
+      tasche: false,
+      kragen: false,
+      stossband: false,
+      knopfKnopfloch: false,
+      gummiband: false,
     },
     positionen: {
       vorne: false,
-        hinten: false,
+      hinten: false,
         oben: false,
         unten: false,
-        aermel: false,
-        beine: false,
+      aermel: false,
+      beine: false,
         bund: false
     },
     hinweise: "",
@@ -65,22 +64,13 @@ export default function LaufkartePage() {
   const [printing, setPrinting] = useState(false);
   const [showHinweiseInReceipt, setShowHinweiseInReceipt] = useState(false);
 
-  const handlePrint = useCallback(async () => {
-    setPrinting(true);
-    const result = await window.electronAPI.laufkarteSaveAndCheck({
-      filename: laufkarteNumber + ".json",
-      data: formData,
-    });
-    if (result.success) {
-      window.print();
-      setTimeout(() => setPrinting(false), 500);
-      onSuccess();
-      resetLaufkarte();
-    } else {
-      setPrinting(false);
-      onError(result.error);
-    }
-  }, [laufkarteNumber, formData]);
+  const getToday = () => {
+    const d = new Date();
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}.${month}.${year}`;
+  };
 
   const handleSaveAndPrintPDF = async () => {
     const result = await window.electronAPI.saveAndPrintLaufkartePDF({
@@ -97,6 +87,7 @@ export default function LaufkartePage() {
 
   useEffect(() => {
     generateNewNumber();
+    setFormData(prev => ({ ...prev, abgegeben: getToday() }));
   }, []);
 
   const generateNewNumber = () => {
@@ -124,7 +115,7 @@ export default function LaufkartePage() {
     setFormData({
       name: "",
       tel: "",
-      abgegeben: "",
+      abgegeben: getToday(),
       abholtermin: "",
       kleidungstuecke: {
         heMantel: false,
@@ -184,28 +175,146 @@ export default function LaufkartePage() {
   }
 
   return (
-    <div className={pageStyles.container}>
-      <div className={styles.laufkartePage}>
-        <div className={styles.laufkarteContainer}>
-          {/* Кнопки управления */}
-          <div className={styles.controls}>
+    <div className={styles.container}>
+    <div className={styles.laufkartePage}>
+        {/* Steuerungsknöpfe */}
+          <div className="controls">
             <button onClick={generateNewNumber}>Neue Nummer generieren</button>
             <button onClick={resetLaufkarte}>Reset</button>
             <button onClick={handleSaveAndPrintPDF}>PDF speichern & drucken</button>
           </div>
-          {/* Форма */}
-          <div className={styles.a4} ref={laufkarteRef} style={printing ? { boxShadow: 'none', margin: 0 } : {}}>
-            <LaufkarteForm
-              companyData={companyData}
-              laufkarteNumber={laufkarteNumber}
-              formData={formData}
-              onInputChange={handleInputChange}
-              onCheckboxChange={handleCheckboxChange}
-              isFirst={true}
-              readOnly={false}
-              showHinweiseInReceipt={showHinweiseInReceipt}
-              setShowHinweiseInReceipt={setShowHinweiseInReceipt}
-            />
+        <div className={styles.laufkarteContainer}>          
+          {/* Formular */}
+          <div className={styles.a4} ref={laufkarteRef}>
+            <div className={styles.laufkarteContent}>
+          <LaufkarteForm
+            companyData={companyData}
+            laufkarteNumber={laufkarteNumber}
+            formData={formData}
+            onInputChange={handleInputChange}
+            onCheckboxChange={handleCheckboxChange}
+            isFirst={true}
+                readOnly={false}
+                showHinweiseInReceipt={showHinweiseInReceipt}
+                setShowHinweiseInReceipt={setShowHinweiseInReceipt}
+          />
+              <div className={styles.signature} style={{ minHeight: 60, textAlign: 'left', paddingTop: '2.5rem', fontSize: '1.2rem' }}>
+                Kundenunterschrift: _________________________________
+              </div>
+            </div>
+            <div className={styles.receipt}>
+              {/* Abtrennbarer Kundenbeleg */}
+              <div className={styles.receiptHeader}>
+                <div>
+                  <div className={styles.receiptCompany}>{companyData.companyName}</div>
+                  <div className={styles.receiptDetails}>{companyData.address}</div>
+                  <div className={styles.receiptDetails}>Tel: {companyData.phone}</div>
+                  <div className={styles.receiptDetails}>Email: {companyData.email}</div>
+                </div>
+                <div className={styles.receiptNr}>
+                  <div className={styles.receiptNrLabel}>Abholnummer:</div>
+                  <div className={styles.receiptNrValue}>{laufkarteNumber}</div>
+                </div>
+              </div>
+              <div className={styles.receiptInfo}>
+                <div>
+                  {/* Name und Abholdatum: fett und nur wenn nicht leer */}
+                  {formData.name && formData.abholtermin && (
+                    <span>
+                      <span style={{ fontWeight: 'bold' }}>Name:</span> {formData.name} {' | '}<span style={{ fontWeight: 'bold' }}>Abholdatum:</span> {formData.abholtermin}
+                    </span>
+                  )}
+                  {formData.name && !formData.abholtermin && (
+                    <span><span style={{ fontWeight: 'bold' }}>Name:</span> {formData.name}</span>
+                  )}
+                  {!formData.name && formData.abholtermin && (
+                    <span><span style={{ fontWeight: 'bold' }}>Abholdatum:</span> {formData.abholtermin}</span>
+                  )}
+                </div>
+                {/* Drei Spalten mit ausgewählten Einträgen */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 16 }}>
+                  {/* Kleidungsstück Spalte */}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 8, textDecoration: 'underline', marginRight: 6 }}>Kleidungsstück:</div>
+                    <div style={{ fontSize: '0.8rem', color: '#374151', wordWrap: 'break-word', marginBottom: 6 }}>
+                      {Object.entries({
+                        heMantel: "He-Mantel",
+                        sakko: "Sakko",
+                        anzughose: "Anzughose",
+                        hose: "Hose",
+                        jeansHose: "Jeanshose",
+                        jacke: "Jacke",
+                        hemd: "Hemd",
+                        weste: "Weste",
+                        pullover: "Pullover",
+                        tShirt: "T-Shirt",
+                        daMantel: "Da-Mantel",
+                        blazer: "Blazer",
+                        kleid: "Kleid",
+                        rock: "Rock",
+                        bluse: "Bluse",
+                        gardinenVorhaenge: "Gardinen/Vorhänge",
+                        bettwaesche: "Bettwäsche",
+                        tischwaesche: "Tischwäsche"
+                      })
+                      .filter(([key, label]) => formData.kleidungstuecke[key])
+                      .map(([key, label]) => label)
+                      .join(', ')}
+                    </div>
+                  </div>
+                  
+                  {/* Änderung Spalte */}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 8, textDecoration: 'underline', marginRight: 6 }}>Änderung:</div>
+                    <div style={{ fontSize: '0.8rem', color: '#374151', wordWrap: 'break-word', marginBottom: 6 }}>
+                      {Object.entries({
+                        kuerzen: "kürzen",
+                        verlaengern: "verlängern",
+                        engen: "engen",
+                        weiten: "weiten",
+                        reissverschluss: "Reißverschluss",
+                        fuetter: "Fütter",
+                        tasche: "Tasche",
+                        kragen: "Kragen",
+                        stossband: "Stoßband",
+                        knopfKnopfloch: "Knopf/Knopfloch",
+                        gummiband: "Gummiband"
+                      })
+                      .filter(([key, label]) => formData.aenderungen[key])
+                      .map(([key, label]) => label)
+                      .join(', ')}
+                    </div>
+                  </div>
+                  
+                  {/* Position Spalte */}
+                  <div style={{ display: 'flex', alignItems: 'center'}}>
+                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 8, textDecoration: 'underline', marginRight: 6  }}>Position:</div>
+                    <div style={{ fontSize: '0.8rem', color: '#374151', wordWrap: 'break-word', marginBottom: 6 }}>
+                      {Object.entries({
+                        vorne: "vorne",
+                        hinten: "hinten",
+                        oben: "oben",
+                        unten: "unten",
+                        aermel: "Ärmel",
+                        beine: "Beine",
+                        bund: "Bund"
+                      })
+                      .filter(([key, label]) => formData.positionen[key])
+                      .map(([key, label]) => label)
+                      .join(', ')}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Hinweise falls vorhanden */}
+                {showHinweiseInReceipt && formData.hinweise && (
+                  <div style={{ display: 'flex', alignItems: 'center', marginTop: 0 }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 0, marginRight: 8 }}>Hinweise:</div>
+                    <div style={{ fontSize: '0.85rem', color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formData.hinweise}</div>
+                  </div>
+                )} 
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -220,7 +329,7 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
       <div className={styles.header}>
         <div>
           <div className={styles.company}>{companyData.companyName}</div>
-          <div className={styles.companyDetails}>           
+          <div className={styles.companyDetails}>
             <div>{companyData.address}</div>
             <div>Tel: {companyData.phone}</div>
             <div>Email: {companyData.email}</div>
@@ -231,24 +340,24 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
           <div className={styles.kontrollNrValue}>{laufkarteNumber}</div>
         </div>
       </div>
-      {/* Customer Info + Date Info в одной строке, 4 колонки: label input label input */}
+      {/* Kundeninfo + Datumsinfo in einer Zeile, 4 Spalten: Label Input Label Input */}
       <div className={styles.grid} style={{ gridTemplateColumns: 'auto 1fr auto 1fr', alignItems: 'center', marginBottom: 24 }}>
         <label className={styles.label} style={{ textAlign: 'right' }}>Name:</label>
-        <input
-          type="text"
-          value={formData.name}
-          onChange={(e) => isFirst && onInputChange("name", e.target.value)}
-          className={styles.input}
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => isFirst && onInputChange("name", e.target.value)}
+            className={styles.input}
           readOnly={readOnly || !isFirst}
-        />
+          />
         <label className={styles.label} style={{ textAlign: 'right' }}>Tel:</label>
-        <input
-          type="text"
-          value={formData.tel}
-          onChange={(e) => isFirst && onInputChange("tel", e.target.value)}
-          className={styles.input}
+          <input
+            type="text"
+            value={formData.tel}
+            onChange={(e) => isFirst && onInputChange("tel", e.target.value)}
+            className={styles.input}
           readOnly={readOnly || !isFirst}
-        />
+          />
       </div>
       <div className={styles.grid} style={{ gridTemplateColumns: 'auto 1fr auto 1fr', alignItems: 'center', marginBottom: 24 }}>
         <label className={styles.label} style={{ textAlign: 'right' }}>Abgegeben am:</label>
@@ -260,15 +369,15 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
           readOnly={readOnly || !isFirst}
         />
         <label className={styles.label} style={{ textAlign: 'right' }}>Abholtermin:</label>
-        <input
-          type="text"
-          value={formData.abholtermin}
-          onChange={(e) => isFirst && onInputChange("abholtermin", e.target.value)}
-          className={styles.input}
+          <input
+            type="text"
+            value={formData.abholtermin}
+            onChange={(e) => isFirst && onInputChange("abholtermin", e.target.value)}
+            className={styles.input}
           readOnly={readOnly || !isFirst}
-        />
+          />
       </div>
-      {/* Main Content Grid */}
+      {/* Hauptinhalt-Grid */}
       <div className={styles.grid} style={{ gridTemplateColumns: '1fr 1fr 1fr', marginBottom: 24 }}>
         {/* Kleidungsstück */}
         <div>
@@ -364,10 +473,10 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
           </div>
         </div>
       </div>
-      {/* Hinweise */}
+      {/* Hinweise falls vorhanden */}
       <div className={styles.hinweise}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div className={styles.sectionTitle}>Hinweise</div>
+        <div className={styles.sectionTitle}>Hinweise</div>
           <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
             <input
               type="checkbox"
@@ -384,123 +493,6 @@ function LaufkarteForm({ companyData, laufkarteNumber, formData, onInputChange, 
           className={`${styles.textarea}`}
           style={{ resize: 'none', border: '1px solid #cbd5e1', padding: 8, fontSize: 13, readOnly: readOnly || !isFirst }}
         />
-      </div>
-      {/* Signature Area */}
-      <div className={styles.signature} style={{ minHeight: 60, textAlign: 'left', paddingTop: '2.5rem', fontSize: '1.2rem' }}>
-        Kundenunterschrift: _________________________________
-      </div>
-      {/* Detachable Customer Receipt */}
-      <div className={styles.receipt}>
-        <div className={styles.receiptHeader}>
-          <div>
-            <div className={styles.receiptCompany}>{companyData.companyName}</div>
-            <div className={styles.receiptDetails}>{companyData.address}</div>
-            <div className={styles.receiptDetails}>Tel: {companyData.phone}</div>
-            <div className={styles.receiptDetails}>Email: {companyData.email}</div>
-          </div>
-          <div className={styles.receiptNr}>
-            <div className={styles.receiptNrLabel}>Abholnummer:</div>
-            <div className={styles.receiptNrValue}>{laufkarteNumber}</div>
-          </div>
-        </div>
-        <div className={styles.receiptInfo}>
-          <div>
-            {/* Name и Abholdatum: жирные и только если не пустые */}
-            {formData.name && formData.abholtermin && (
-              <span>
-                <span style={{ fontWeight: 'bold' }}>Name:</span> {formData.name} {' | '}<span style={{ fontWeight: 'bold' }}>Abholdatum:</span> {formData.abholtermin}
-              </span>
-            )}
-            {formData.name && !formData.abholtermin && (
-              <span><span style={{ fontWeight: 'bold' }}>Name:</span> {formData.name}</span>
-            )}
-            {!formData.name && formData.abholtermin && (
-              <span><span style={{ fontWeight: 'bold' }}>Abholdatum:</span> {formData.abholtermin}</span>
-            )}
-          </div>
-          {/* Три колонки с выбранными пунктами */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 16 }}>
-            {/* Kleidungsstück колонка */}
-            <div>
-              <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 8, textDecoration: 'underline' }}>Kleidungsstück:</div>
-              <div style={{ fontSize: '0.8rem', color: '#374151', lineHeight: 1.4, wordWrap: 'break-word' }}>
-                {Object.entries({
-                  heMantel: "He-Mantel",
-                  sakko: "Sakko",
-                  anzughose: "Anzughose",
-                  hose: "Hose",
-                  jeansHose: "Jeanshose",
-                  jacke: "Jacke",
-                  hemd: "Hemd",
-                  weste: "Weste",
-                  pullover: "Pullover",
-                  tShirt: "T-Shirt",
-                  daMantel: "Da-Mantel",
-                  blazer: "Blazer",
-                  kleid: "Kleid",
-                  rock: "Rock",
-                  bluse: "Bluse",
-                  gardinenVorhaenge: "Gardinen/Vorhänge",
-                  bettwaesche: "Bettwäsche",
-                  tischwaesche: "Tischwäsche"
-                })
-                .filter(([key, label]) => formData.kleidungstuecke[key])
-                .map(([key, label]) => label)
-                .join(', ')}
-              </div>
-            </div>
-            
-            {/* Änderung колонка */}
-            <div>
-              <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 8, textDecoration: 'underline' }}>Änderung:</div>
-              <div style={{ fontSize: '0.8rem', color: '#374151', lineHeight: 1.4, wordWrap: 'break-word' }}>
-                {Object.entries({
-                  kuerzen: "kürzen",
-                  verlaengern: "verlängern",
-                  engen: "engen",
-                  weiten: "weiten",
-                  reissverschluss: "Reißverschluss",
-                  fuetter: "Fütter",
-                  tasche: "Tasche",
-                  kragen: "Kragen",
-                  stossband: "Stoßband",
-                  knopfKnopfloch: "Knopf/Knopfloch",
-                  gummiband: "Gummiband"
-                })
-                .filter(([key, label]) => formData.aenderungen[key])
-                .map(([key, label]) => label)
-                .join(', ')}
-              </div>
-            </div>
-            
-            {/* Position колонка */}
-            <div>
-              <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 8, textDecoration: 'underline' }}>Position:</div>
-              <div style={{ fontSize: '0.8rem', color: '#374151', lineHeight: 1.4, wordWrap: 'break-word' }}>
-                {Object.entries({
-                  vorne: "vorne",
-                  hinten: "hinten",
-                  oben: "oben",
-                  unten: "unten",
-                  aermel: "Ärmel",
-                  beine: "Beine",
-                  bund: "Bund"
-                })
-                .filter(([key, label]) => formData.positionen[key])
-                .map(([key, label]) => label)
-                .join(', ')}
-              </div>
-            </div>
-          </div>
-          
-          {/* Hinweise если есть */}
-          {showHinweiseInReceipt && formData.hinweise && (
-            <div style={{ marginTop: 16 }}>
-              <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: 4 }}>Hinweise:</div>
-              <div style={{ fontSize: '0.85rem', color: '#374151' }}>{formData.hinweise}</div>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

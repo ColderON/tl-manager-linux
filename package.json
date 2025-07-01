@@ -10,12 +10,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "export": "next build && next export",
     "electron": "electron .",
     "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development electron . --no-sandbox\"",
     "build-electron": "npm run build && electron-builder",
-    "dist": "npm run build && electron-builder --publish=never",
-    "standalone": "next build && next start"
+    "dist": "npm run build && electron-builder --publish=never"
   },
   "build": {
     "appId": "com.preisliste.desktop",
@@ -25,13 +23,25 @@
       "buildResources": "build"
     },
     "files": [
-      "out/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      ".next",
+      ".next/standalone/**/*",
+      ".next/static/**/*",
+      "public/**/*"
     ],
+    "icon": "electron/icons/icon.png",
     "extraResources": [
       {
-        "from": "items",
-        "to": "items"
+        "from": ".next/standalone",
+        "to": ".next/standalone"
+      },
+      {
+        "from": ".next/static",
+        "to": ".next/static"
+      },
+      {
+        "from": "public",
+        "to": "public"
       }
     ],
     "win": {
@@ -40,29 +50,30 @@
     },
     "linux": {
       "target": "AppImage",
-      "icon": "public/icon.png",
-      "category": "Utility"
+      "icon": "electron/icons/icon",
+      "category": "Utility"      
     },
     "mac": {
       "target": "dmg",
       "icon": "public/icon.icns"
-    }
+    },
+    "asar": false
   },
   "dependencies": {
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-to-print": "^3.1.0"
+    "react-to-print": "^3.1.0",
+    "wait-on": "^7.2.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/react": "19.1.8",
     "concurrently": "^8.0.0",
     "cross-env": "^7.0.3",
-    "electron": "^27.0.0",
+    "electron": "^37.1.0",
     "electron-builder": "^24.0.0",
     "eslint": "^9",
-    "eslint-config-next": "15.3.4",
-    "wait-on": "^7.0.0"
+    "eslint-config-next": "15.3.4"
   }
 }
